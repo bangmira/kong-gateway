@@ -1,0 +1,62 @@
+---
+- name: Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - git
+    - curl
+    - openssl
+    - libssl-dev
+    - libpcre3-dev
+    - libyaml-dev
+    - liblua5.1-dev
+    - lua5.1
+    - lua-socket
+
+- name: Clone Kong Gateway repository
+  git:
+    repo: https://github.com/Kong/kong.git
+    dest: /opt/kong
+    version: master
+
+- name: Build and install Kong Gateway
+  command: |
+    cd /opt/kong
+    make install
+  args:
+    creates: /usr/local/bin/kong
+
+- name: Create Kong Gateway system user
+  user:
+    name: kong
+    system: yes
+    shell: /sbin/nologin
+
+- name: Create Kong Gateway data and configuration directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: kong
+    group: kong
+    mode: '0755'
+  loop:
+    - /usr/local/kong
+    - /etc/kong
+
+- name: Create Kong Gateway systemd service
+  template:
+    src: kong.service.j2
+    dest: /etc/systemd/system/kong.service
+  notify:
+    - Reload systemd
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Start Kong Gateway service
+  service:
+    name: kong
+    state: started
+    enabled: yes

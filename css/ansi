@@ -1,0 +1,4 @@
+ansible-role-kong-gateway/
+  ├── tasks/
+  │   └── main.yml
+  └── README.md

@@ -1,0 +1,7 @@
+---
+- name: Install Kong Gateway from source on Ubuntu
+  hosts: example.com
+  become: yes
+
+  roles:
+    - ansible-role-kong-gateway
